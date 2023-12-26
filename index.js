@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const app = express();
 const jwt = require('jsonwebtoken');
+const punycode = require('punycode/');
 const morgan = require('morgan');
 const port = process.env.Port || 5000;
 
@@ -12,6 +13,7 @@ const corsOptions = {
   origin: '*',
   credentials: true,
   optionSuccessStatus: 200,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 }
 app.use(cors(corsOptions))
 app.use(express.json())
@@ -32,7 +34,7 @@ const verifyJWT = (req, res, next) => {
     if(err){
       return res.status(401).send({error: true, message: 'Unauthorized access'})
     }
-    req.decoded = decoded
+    req.decoded = decoded;
   })
 
   next();
@@ -160,7 +162,13 @@ app .post('/blogs', verifyJWT, async(req, res) => {
 })
 // get all blogs from db
 app.get('/blogs', async(req, res) => {
-  const result = await blogsCollection.find().toArray()
+  const result = await blogsCollection.find().sort({_id:-1}).toArray()
+  res.send(result);
+})
+
+// get 3 blogs from db
+app.get('/blogs/fixed', async(req, res) => {
+  const result = await blogsCollection.find().sort({_id:-1}).limit(3).toArray()
   res.send(result);
 })
 
@@ -188,7 +196,7 @@ app.get('/blogs/:id', async(req, res) => {
 })
 
 // update blog
-app.put('/blogs/update/:id', async (req, res) => {
+app.put('/blogs/update/:id', verifyJWT, async (req, res) => {
   const id = req.params.id;
   const filter = {_id: new ObjectId(id)};
   const options = {upsert: true};
