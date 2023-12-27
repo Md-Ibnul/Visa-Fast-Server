@@ -1,10 +1,10 @@
 const express = require('express');
+const app = express();
+const morgan = require('morgan');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
-const app = express();
-const jwt = require('jsonwebtoken');
-const morgan = require('morgan');
 const port = process.env.Port || 5000;
 
 // middleware
@@ -12,7 +12,6 @@ const corsOptions = {
   origin: '*',
   credentials: true,
   optionSuccessStatus: 200,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 }
 app.use(cors(corsOptions))
 app.use(express.json())
@@ -215,7 +214,7 @@ app.put('/blogs/update/:id', verifyJWT, async (req, res) => {
 
 
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
